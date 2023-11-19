@@ -10,7 +10,7 @@ struct Graph    // List of vertices
     struct Graph *next;
 };
 
-struct Graph *FillingGraph(struct Graph *, int **, int);
+void FillingGraph(struct Graph *, int **, int, int);
 
 int size;
 
@@ -48,7 +48,7 @@ int main()
     struct Graph *array;
     array = (struct Graph *)(malloc(sizeof(struct Graph *) * size));
 
-    FillingGraph(array, graph, size);
+    FillingGraph(array, graph, size, 0);
 
     for(i = 0; i < size; i++)
     {
@@ -84,7 +84,6 @@ void DFS(int **graph, int *visited, int size, int v)
 
 
 
-
 int** Creategraph(int **graph, int size)
 {
     srand(time(NULL));
@@ -109,31 +108,27 @@ int** Creategraph(int **graph, int size)
     return graph;
 }
 
-struct Graph *FillingGraph(struct Graph *array, int **graph, int size)
+void FillingGraph(struct Graph *array, int **graph, int size, int v)
 {
     struct Graph *pointer = NULL;
-    int j, count = 0;
+    int i = v;
+    pointer = (array + i);
 
-    for(int i = 0; i < size; i++)
+    for(int j = 0; j < size; j++)
     {
-        pointer = &array[i];
-
-        for(j = 0; j < size; j++)
+        if(graph[i][j] == 1)
         {
-            if(graph[i][j] == 1)
-            {
-                pointer -> data = j;
+            pointer -> data = j;
 
-                pointer -> next = malloc(sizeof(struct Graph));
-                pointer = pointer -> next;
-                pointer -> next = NULL;
-                count++;
-            }
+            pointer -> next = malloc(sizeof(struct Graph));
+            pointer = pointer -> next;
+            pointer -> next = NULL;
         }
     }
 
+    i++;
 
-    return array;
+    if(i < size) FillingGraph(array, graph, size, i);
 }
 
 
