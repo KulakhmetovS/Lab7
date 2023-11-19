@@ -1,28 +1,40 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 int** Creategraph(int **, int);
 void DFS(int **, int *, int, int);
 
-struct Graph    // List of vertices
-{
-    int data;
-    struct Graph *next;
-};
-
-void FillingGraph(struct Graph *, int **, int, int);
-
 int size;
+
+// <---------- Список смежности ---------->
+struct node
+{
+    int vertex;
+    struct node* next;
+};
+struct node* createNode(int);
+struct Graph
+{
+    int numVertices;
+    struct node** adjLists;
+};
+struct Graph* createGraph(int vertices);
+void addEdge(struct Graph* graph, int src, int dest);
+void printGraph(struct Graph* graph);
+// <---------- ! ---------->
+
+void ListDFS(struct Graph*, int *, int);
 
 int main()
 {
-    int i, j, v;
+    int i, j, v, num;
     int **graph = NULL, *visited = NULL, *List = NULL;
-    struct Graph *pointer;
 
     printf("\t# Graphs #\n\n");
-    printf("Enter the number of graph vertices: ");
+    printf("Enter the number of graph vertices (positive integer): ");
     scanf("%d", &size);
+    num = size - 1;
 
     // Creating the graph
     graph = Creategraph(graph, size);
@@ -37,7 +49,7 @@ int main()
         printf("\n");
     }
 
-    printf("Enter the number of start vertex: ");
+    printf("Enter the number of start vertex (positive integer [0; %d]): ", num);
     scanf("%d", &v);
 
     // <---------- ! ---------->
@@ -45,23 +57,32 @@ int main()
     // <---------- ! ---------->
     printf("\n\n");
 
-    struct Graph *array;
-    array = (struct Graph *)(malloc(sizeof(struct Graph *) * size));
 
-    FillingGraph(array, graph, size, 0);
+
+// <---------- Список смежности ---------->
+    struct Graph* graf = createGraph(size);
 
     for(i = 0; i < size; i++)
     {
-        printf("%d:  ", i);
-        pointer = (array + i);
-        while(pointer -> next != NULL)
+        for(j = i; j < size; j++)
         {
-            printf("%d ", pointer -> data);
-            pointer = pointer -> next;
+            if(graph[i][j] == 1)
+            {
+                addEdge(graf, i, j);
+            }
         }
-        printf("\n");
     }
-        //printf("%d %d\n", i, array[i].data);
+
+    printf("\n# Adjacency list #\n");
+    printGraph(graf);
+// <---------- ! ---------->
+
+    for(i = 0; i < size; i++)
+        visited[i] = 0;
+
+    printf("\nEnter the number of start vertex (positive integer[0; %d]): ", num);
+    scanf("%d", &v);
+    ListDFS(graf, visited, v);
 
     free(graph);
     free(visited);
@@ -108,27 +129,73 @@ int** Creategraph(int **graph, int size)
     return graph;
 }
 
-void FillingGraph(struct Graph *array, int **graph, int size, int v)
+
+// <---------- Список смежности ---------->
+struct node* createNode(int v)
 {
-    struct Graph *pointer = NULL;
-    int i = v;
-    pointer = (array + i);
-
-    for(int j = 0; j < size; j++)
-    {
-        if(graph[i][j] == 1)
-        {
-            pointer -> data = j;
-
-            pointer -> next = malloc(sizeof(struct Graph));
-            pointer = pointer -> next;
-            pointer -> next = NULL;
-        }
-    }
-
-    i++;
-
-    if(i < size) FillingGraph(array, graph, size, i);
+    struct node* newNode = malloc(sizeof(struct node));
+    newNode->vertex = v;
+    newNode->next = NULL;
+    return newNode;
 }
 
+struct Graph* createGraph(int vertices)
+{
+    struct Graph* graph = malloc(sizeof(struct Graph));
+    graph->numVertices = vertices;
 
+    graph->adjLists = malloc(vertices * sizeof(struct node*));
+
+    int i;
+    for (i = 0; i < vertices; i++)
+        graph->adjLists[i] = NULL;
+
+    return graph;
+}
+
+void addEdge(struct Graph* graph, int src, int dest)
+{
+    // Add edge from src to dest
+    struct node* newNode = createNode(dest);
+    newNode->next = graph->adjLists[src];
+    graph->adjLists[src] = newNode;
+
+    // Add edge from dest to src
+    newNode = createNode(src);
+    newNode->next = graph->adjLists[dest];
+    graph->adjLists[dest] = newNode;
+}
+
+void printGraph(struct Graph* graph)
+{
+    int v;
+    for (v = 0; v < graph->numVertices; v++)
+    {
+        struct node* temp = graph->adjLists[v];
+        printf("%d:  ", v);
+        while (temp)
+        {
+            printf("%d ", temp->vertex);
+            temp = temp->next;
+        }
+        printf("\n");
+    }
+}
+
+void ListDFS(struct Graph* graph, int *visited, int v)
+{
+    visited[v] = 1;
+    printf("%d ", v);
+    struct node* temp = graph->adjLists[v];
+    while (temp)
+        {
+            if(visited[temp->vertex] == 0)
+            {
+                ListDFS(graph, visited, temp->vertex);
+            }
+            else
+            {
+                temp = temp -> next;
+            }
+        }
+}
